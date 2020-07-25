@@ -1,0 +1,142 @@
+﻿@using MongoDB.Bson
+@model ExplorerDbViewModel
+<style>
+    tr:nth-child(even) {
+        background: rgba(64, 32, 0, 0.1);
+    }
+
+    span {
+        white-space: nowrap;
+    }
+
+    div {
+        margin-right: 10px;
+    }
+</style>
+<div style="display: flex">
+    <div>
+        <form asp-action="CreateDb">
+            Input Database Name:<br />
+            <input type="text" name="value" style="width: 200px" /><br />
+            <input type="submit" value="Create Database" style="width: 200px; margin-top: 4px" />
+        </form>
+        <br />
+        <form asp-action="DeleteDb">
+            Input Database Name:<br />
+            <input type="text" name="value" style="width: 200px" /><br />
+            <input type="submit" value="Delete Database" style="width: 200px; margin-top: 4px" />
+        </form>
+        <br />
+        <br />
+        @foreach (var databaseName in Model.DatabasesAndCollections.Keys)
+        {
+            @if ((databaseName != "config") && (databaseName != "admin") && (databaseName != "local"))
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <span>Collections in <b>Db @databaseName</b>:</span><br />
+                        <ul>
+                            @foreach (var collectionName in Model.DatabasesAndCollections[databaseName])
+                            {
+                                <li>
+                                    <a asp-route-selectedDatabase="@databaseName"
+                                       asp-route-selectedCollection="@collectionName">@collectionName</a>
+                                </li>
+                            }
+                        </ul>
+                        <form asp-action="CreateCol"
+                              asp-route-database="@databaseName">
+                            Input Name:<br />
+                            <input type="text" name="value" style="width: 200px" /><br />
+                            <input type="submit" value="Create Collection" style="width: 200px; margin-top: 2px" />
+                        </form>
+                        <form asp-action="DeleteCol"
+                              asp-route-database="@databaseName">
+                            Input Name:<br />
+                            <input type="text" name="value" style="width: 200px" /><br />
+                            <input type="submit" value="Delete Collection" style="width: 200px; margin-top: 2px" />
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    <div>
+        @if (@Model.Collection == null)
+        {
+            <span style="color: green; font-style: italic">Select a collectionName in one of the databaseNames to the left.</span>
+        }
+        else
+        {
+            @if (@Model.CollectionCount > 0)
+            {
+
+                var id = Model.Document["_id"];
+                var count = Model.Index + 1;
+
+                <h3>You selected <i>@Model.Collection</i> in <i>@Model.Database</i></h3>
+                <span>Showing row @count of @Model.CollectionCount</span>
+                @if (Model.Index > 0)
+                {
+                    <a asp-route-selectedDatabase="@Model.Database"
+                       asp-route-selectedCollection="@Model.Collection"
+                       asp-route-index="@(Model.Index-1)">Previous</a>
+                }
+                @if (Model.Index < Model.CollectionCount - 1)
+                {
+                    <a asp-route-selectedDatabase="@Model.Database"
+                       asp-route-selectedCollection="@Model.Collection"
+                       asp-route-index="@(Model.Index + 1)">Next</a>
+                }
+                <hr />
+                <div style="display: flex; justify-content: space-between">
+                    <div>
+                        <form asp-action="CreateOrUpdate"
+                              asp-route-id="@id"
+                              asp-route-index="@Model.Index"
+                              asp-route-database="@Model.Database"
+                              asp-route-collection="@Model.Collection">
+                            Field:<br />
+                            <input type="text" name="fieldName" style="width: 200px" /><br />
+                            Value:<br />
+                            <input type="text" name="value" style="width: 200px" /><br />
+                            <input type="submit" value="Add or Change Field Value" style="width: 200px; margin-top: 4px" />
+                        </form>
+                    </div>
+                    <div>
+                        <form asp-action="DeleteDoc"
+                              asp-route-id="@id"
+                              asp-route-index="@Model.Index"
+                              asp-route-database="@Model.Database"
+                              asp-route-collection="@Model.Collection">
+                            <input type="submit" value="Delete Document" style="width: 200px" />
+                        </form>
+                        <form asp-action="CreateDoc"
+                              asp-route-id="@id"
+                              asp-route-index="@Model.Index"
+                              asp-route-database="@Model.Database"
+                              asp-route-collection="@Model.Collection">
+                            <input type="submit" value="Create New Document" style="width: 200px;  margin-top: 4px" />
+                        </form>
+                    </div>
+                </div>
+                <hr />
+                <h4>Document</h4>
+                <partial name="_Document" model="Model.Document" />
+            }
+            else
+            {
+                <h3>You selected <i>@Model.Collection</i> in <i>@Model.Database</i></h3>
+                <span style="color: green; font-style: italic">No documents. Create a new document:</span>
+                <div>
+                    <form asp-action="CreateDoc"
+                          asp-route-index="@Model.Index"
+                          asp-route-database="@Model.Database"
+                          asp-route-collection="@Model.Collection">
+                        <input type="submit" value="Create New Document" style="width: 200px;  margin-top: 4px" />
+                    </form>
+                </div>
+            }
+        }
+    </div>
+</div>

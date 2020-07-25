@@ -1,0 +1,79 @@
+﻿@using MongoDB.Bson
+@model ExplorerDbViewModel
+<style>
+    tr:nth-child(even) {
+        background: rgba(64, 32, 0, 0.1);
+    }
+
+    span {
+        white-space: nowrap;
+    }
+
+    div {
+        margin-right: 10px;
+    }
+</style>
+<div style="display: flex">
+    <div>
+
+        @foreach (var databaseName in Model.DatabasesAndCollections.Keys)
+        {
+            @if ((databaseName != "config") && (databaseName != "admin") && (databaseName != "local"))
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <span>Collections in <b>Db @databaseName</b>:</span><br />
+                        <ul>
+                            @foreach (var collectionName in Model.DatabasesAndCollections[databaseName])
+                            {
+                                <li>
+                                    <a asp-route-selectedDatabase="@databaseName"
+                                       asp-route-selectedCollection="@collectionName">@collectionName</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    <div>
+        @if (@Model.Collection == null)
+        {
+            <span style="color: green; font-style: italic">Select a collectionName in one of the databaseNames to the left.</span>
+        }
+        else
+        {
+            @if (@Model.CollectionCount > 0)
+            {
+
+                var id = Model.Document["_id"];
+                var count = Model.Index + 1;
+
+                <h3>You selected <i>@Model.Collection</i> in <i>@Model.Database</i></h3>
+                <span>Showing row @count of @Model.CollectionCount</span>
+                @if (Model.Index > 0)
+                {
+                    <a asp-route-selectedDatabase="@Model.Database"
+                       asp-route-selectedCollection="@Model.Collection"
+                       asp-route-index="@(Model.Index-1)">Previous</a>
+                }
+                @if (Model.Index < Model.CollectionCount - 1)
+                {
+                    <a asp-route-selectedDatabase="@Model.Database"
+                       asp-route-selectedCollection="@Model.Collection"
+                       asp-route-index="@(Model.Index + 1)">Next</a>
+                }
+                <hr />
+                <hr />
+                <h4>Document</h4>
+                <partial name="_Document" model="Model.Document" />
+            }
+            else
+            {
+                <h3>You selected <i>@Model.Collection</i> in <i>@Model.Database</i></h3>
+                <span style="color: green; font-style: italic">No documents.</span>
+            }
+        }
+    </div>
+</div>
